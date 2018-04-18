@@ -25,36 +25,7 @@ try {
 
 gulp.task('default', BUILD.DEFAULT_TASKS || ['js', 'less', 'sass']);
 
-gulp.task('js', ['js-lint', 'js-compile']);
-
-gulp.task('lint', ['js-lint']);
-
-gulp.task('js-lint', function() {
-  if (BUILD.JS_LINT_RULES) {
-    var gjslint = require('gulp-gjslint');
-
-    return merge(BUILD.JS_LINT_RULES.map(function(rule) {
-      // Set default flags to be used for gulp-gjslint
-      var flags = [
-        '--jslint_error indentation',
-        '--jslint_error well_formed_author',
-        '--jslint_error braces_around_type',
-        '--jslint_error unused_private_members',
-        '--jsdoc',
-        '--max_line_length 80',
-        '--error_trace'
-      ] || rule.flags;
-      return gulp.src(rule.sourceFiles).pipe(gjslint({
-        flags: flags
-      })).pipe(gjslint.reporter('console'))
-         .on('finish', function() {
-           console.log('Finished linting ' + rule.name);
-         });
-    }));
-  } else {
-    console.warn('JS_LINT_RULES are not defined in your BUILD.js');
-  }
-});
+gulp.task('js', ['js-compile']);
 
 gulp.task('js-compile', function() {
   if (BUILD.JS_BUILD_RULES) {
