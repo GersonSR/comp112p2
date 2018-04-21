@@ -24,11 +24,11 @@
         <script type="text/javascript">
             var ASSET_URL = "assets/"
             //We first initialize the phaser game object
-            var WINDOW_WIDTH = 750;
-            var WINDOW_HEIGHT = 500;
+            var WINDOW_WIDTH = 950;
+            var WINDOW_HEIGHT = 700;
             var game = new Phaser.Game(WINDOW_WIDTH, WINDOW_HEIGHT, Phaser.AUTO, '', {preload:preload, create:create, update:GameLoop} );
 
-            var WORLD_SIZE = {w:750,h:500};
+            var WORLD_SIZE = {w:950,h:700};
           
 
             var water_tiles = [];
@@ -44,6 +44,7 @@
                 speed:0.5, // This is the parameter for how fast it should move 
                 friction:0.95,
                 shot:false,
+                alive:true,
                 update: function(){
                     // Lerp rotation towards mouse
                     var dx = (game.input.mousePointer.x + game.camera.x) - this.sprite.x;
@@ -67,7 +68,7 @@
                     this.speed_y *= this.friction;
 
                     // Shoot bullet 
-                    if(game.input.activePointer.leftButton.isDown && !this.shot){
+                    if(game.input.activePointer.leftButton.isDown && !this.shot && this.alive){
                         var speed_x = Math.cos(this.sprite.rotation + Math.PI/2) * 20;
                         var speed_y = Math.sin(this.sprite.rotation + Math.PI/2) * 20;
                         /* The server is now simulating the bullets, clients are just rendering bullet locations, so no need to do this anymore
@@ -149,7 +150,7 @@
                 game.camera.y = player.sprite.y - WINDOW_HEIGHT/2;
 
                 socket = io(); // This triggers the 'connection' event on the server
-                socket.emit('new-player',{x:player.sprite.x,y:player.sprite.y,angle:player.sprite.rotation,type:1})
+                socket.emit('new-player',{x:player.sprite.x,y:player.sprite.y,angle:player.sprite.rotation,type:1, health:10})
                 // Listen for other players connecting
                 socket.on('update-players',function(players_data){
                     var players_found = {};
@@ -212,6 +213,17 @@
                     } else {
                         // Find the right player 
                         other_players[id].alpha = 0;
+                    }
+                })
+
+                socket.on('player-death',function(id){
+                    if(id == socket.id){
+                        //If this is you
+                        player.alive = false;
+                        player.sprite.destroy();
+                    } else {
+                        // Find the right player 
+                        other_players[id].destroy();
                     }
                 })
 
