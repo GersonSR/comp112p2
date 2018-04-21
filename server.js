@@ -49,6 +49,7 @@ io.on('connection', function(socket){
     if(players[socket.id] == undefined) return;
     var new_bullet = data;
     data.owner_id = socket.id; // Attach id of the player to the bullet 
+    data.hits = {}; //Array of ship IDs hit by the bullet
     if(Math.abs(data.speed_x) > 20 || Math.abs(data.speed_y) > 20){
       console.log("Player",socket.id,"is cheating!");
     }
@@ -71,7 +72,15 @@ function ServerGameLoop(){
         var dy = players[id].y - bullet.y;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if(dist < 70){
-          io.emit('player-hit',id); // Tell everyone this player got hit
+          if(players[id].health > 1 && bullet.hits[id] == undefined) {
+          	players[id].health -= 1;
+          	bullet.hits[id] = true;
+          	console.log(players[id].health);
+          	io.emit('player-hit',id); // Tell everyone this player got hit
+          } else if (players[id].health <= 1 && bullet.hits[id] != undefined){
+         	console.log(players[id].health);
+          	io.emit('player-death',id);
+          }
         }
       }
     }
