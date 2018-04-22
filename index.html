@@ -238,6 +238,8 @@
         /* Send latency message.*/
         socket.on('pinged', function(data) {
             var now = new Date();
+            console.log(now.getTime());
+            console.log(data);
             var serverLatency = now.getTime() - data;
             console.log(serverLatency)
             socket.emit('pinger', {timeSent:now.getTime(),serverLatency:serverLatency});
