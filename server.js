@@ -62,7 +62,7 @@ io.on('connection', function(socket){
 	socket.on("pinger", function(timeData) {
 		if(players[socket.id] == undefined) return;
 		latency = (new Date().getTime()) - timeData.timeSent;
-		latency = ((players[socket.id].ping * 1) + (latency * 2) / 3)
+		latency = ((players[socket.id].ping * 1) + (latency * 2)) / 3
 		players[socket.id].ping = latency;
 		players[socket.id].serverPing = timeData.serverLatency;
 		console.log("SocketId: " + socket.id + " Latency: " + latency + " Server Ping: " + timeData.serverLatency);
