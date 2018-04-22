@@ -27,6 +27,7 @@ io.on('connection', function(socket){
 		console.log("New player joined with state:",state);
 		players[socket.id] = state;
 		players[socket.id].ping = 0;
+		players[socket.id].serverPing = 0;
 		// Broadcast a signal to everyone containing the updated players list
 		io.emit('update-players',players);
 	})
@@ -58,12 +59,13 @@ io.on('connection', function(socket){
 		bullet_array.push(new_bullet);
 	});
 
-	socket.on("pinger", function() {
+	socket.on("pinger", function(timeData) {
 		if(players[socket.id] == undefined) return;
-		latency = Date.now() - startTime;
+		latency = Date.now() - timeData.timeSent;
 		latency = ((players[socket.id].ping * 1) + (latency * 2) / 3)
 		players[socket.id].ping = latency;
-		console.log("SocketId: " + socket.id + " Latency: " + latency);
+		players[socket.id].serverPing = timeData.serverLatency;
+		console.log("SocketId: " + socket.id + " Latency: " + latency + " Server Ping: " + timeData.serverLatency);
 	});
 
 
@@ -111,7 +113,7 @@ function ServerGameLoop(){
 
 function getPing(){
 	startTime =  Date.now();
-	io.emit('pinged');
+	io.emit('pinged', startTime);
 }
 
 setInterval(ServerGameLoop, 16); 
