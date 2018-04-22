@@ -2,6 +2,7 @@ var express = require('express'); // Express contains some boilerplate to for ro
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http); // Here's where we include socket.io as a node module 
+var startTime;
 
 // Serve the index page 
 app.get("/", function (request, response) {
@@ -25,36 +26,47 @@ io.on('connection', function(socket){
 	socket.on('new-player',function(state){
 		console.log("New player joined with state:",state);
 		players[socket.id] = state;
+		players[socket.id].ping = 0;
 		// Broadcast a signal to everyone containing the updated players list
 		io.emit('update-players',players);
 	})
-  
-  // Listen for a disconnection and update our player table 
-  socket.on('disconnect',function(state){
-    delete players[socket.id];
-    io.emit('update-players',players);
-  }) 
-  
-  // Listen for move events and tell all other clients that something has moved 
-  socket.on('move-player',function(position_data){
-    if(players[socket.id] == undefined) return; // Happens if the server restarts and a client is still connected 
-    players[socket.id].x = position_data.x;  
-    players[socket.id].y = position_data.y; 
-    players[socket.id].angle = position_data.angle; 
-    io.emit('update-players',players);
-  })
-  
-  // Listen for shoot-bullet events and add it to our bullet array
-  socket.on('shoot-bullet',function(data){
-    if(players[socket.id] == undefined) return;
-    var new_bullet = data;
-    data.owner_id = socket.id; // Attach id of the player to the bullet 
-    data.hits = {}; //Array of ship IDs hit by the bullet
-    if(Math.abs(data.speed_x) > 20 || Math.abs(data.speed_y) > 20){
-      console.log("Player",socket.id,"is cheating!");
-    }
-    bullet_array.push(new_bullet);
-  });
+	  
+	// Listen for a disconnection and update our player table 
+	socket.on('disconnect',function(state){
+		delete players[socket.id];
+		io.emit('update-players',players);
+	}) 
+
+	// Listen for move events and tell all other clients that something has moved 
+	socket.on('move-player',function(position_data){
+		if(players[socket.id] == undefined) return; // Happens if the server restarts and a client is still connected 
+		players[socket.id].x = position_data.x;  
+		players[socket.id].y = position_data.y; 
+		players[socket.id].angle = position_data.angle; 
+		io.emit('update-players',players);
+	})
+
+	// Listen for shoot-bullet events and add it to our bullet array
+	socket.on('shoot-bullet',function(data){
+		if(players[socket.id] == undefined) return;
+		var new_bullet = data;
+		data.owner_id = socket.id; // Attach id of the player to the bullet 
+		data.hits = {}; //Array of ship IDs hit by the bullet
+		if(Math.abs(data.speed_x) > 20 || Math.abs(data.speed_y) > 20){
+		  console.log("Player",socket.id,"is cheating!");
+		}
+		bullet_array.push(new_bullet);
+	});
+
+	socket.on("pinger", function() {
+		if(players[socket.id] == undefined) return;
+		latency = Date.now() - startTime;
+		latency = ((players[socket.id].ping * 1) + (latency * 2) / 3)
+		players[socket.id].ping = latency;
+		console.log("SocketId: " + socket.id + " Latency: " + latency);
+	});
+
+
 })
 
 // Update the bullets 60 times per frame and send updates 
@@ -92,8 +104,15 @@ function ServerGameLoop(){
     }
         
   }
-  // Tell everyone where all the bullets are by sending the whole array
-  io.emit("bullets-update",bullet_array);
+	// Tell everyone where all the bullets are by sending the whole array
+	io.emit("bullets-update",bullet_array);
+}
+
+
+function getPing(){
+	startTime =  Date.now();
+	io.emit('pinged');
 }
 
 setInterval(ServerGameLoop, 16); 
+setInterval(getPing, 10000); 

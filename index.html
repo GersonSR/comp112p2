@@ -235,6 +235,10 @@
           }
         })
 
+        /* Send latency message.*/
+        socket.on('pinged', function() {
+            socket.emit('pinger');
+        });  
      }
 
      function GameLoop(){
@@ -284,8 +288,7 @@
           i--;
           }
           } 
-        */
-
+        */ 
      }
      
      
