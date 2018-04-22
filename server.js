@@ -61,7 +61,7 @@ io.on('connection', function(socket){
 
 	socket.on("pinger", function(timeData) {
 		if(players[socket.id] == undefined) return;
-		latency = Date.now() - timeData.timeSent;
+		latency = (new Date().getTime()) - timeData.timeSent;
 		latency = ((players[socket.id].ping * 1) + (latency * 2) / 3)
 		players[socket.id].ping = latency;
 		players[socket.id].serverPing = timeData.serverLatency;
@@ -112,9 +112,9 @@ function ServerGameLoop(){
 
 
 function getPing(){
-	startTime =  Date.now();
+	startTime =  new Date().getTime();
 	io.emit('pinged', startTime);
 }
 
 setInterval(ServerGameLoop, 16); 
-setInterval(getPing, 10000); 
+setInterval(getPing, 5000); 
