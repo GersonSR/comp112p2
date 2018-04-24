@@ -45,16 +45,8 @@ io.on('connection', function(socket){
     players[socket.id].y = position_data.y;
     players[socket.id].angle = position_data.angle;
 
-    player_data = {};
-    player_data.id = socket.id;
-    player_data.x = position_data.x;
-    player_data.y = position_data.y;
-    player_data.angle = position_data.angle;
-    io.emit('update-players', players);
-    // var moved = false;
-    // if (players[socket.id].x - position_data.x > 1 || players[socket.id].y - position_data.y > 1){
-    //   io.emit('update-players-diff', player_data);
-    //}
+    position_data.id = socket.id;
+    io.emit('player-move', position_data);
   });
 
 

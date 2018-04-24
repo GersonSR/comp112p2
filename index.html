@@ -41,7 +41,7 @@
      var other_players = {};
      var bulletSound = new Howl({
        src: [ASSET_URL + "interventionshot.mp3"],
-       volume: 0.2
+       volume: 0.1
      });
      var player = {
        sprite:null,//Will hold the sprite when it's created
@@ -100,7 +100,6 @@
            this.sprite.alpha = 1;
          }
 
-         // Tell the server we've moved
          socket.emit('move-player',{x:this.sprite.x,y:this.sprite.y,angle:this.sprite.rotation});
        }
      };
@@ -158,17 +157,25 @@
        socket = io(); // This triggers the 'connection' event on the server
        socket.emit('new-player',{x:player.sprite.x,y:player.sprite.y,angle:player.sprite.rotation,type:player_ship_type, health:10})
 
-       // socket.on('update-players-diff', function(player_data){
-       //   id = player_data.id;
-       //   if(id != socket.id){
-       //     console.log(other_players);
-       //     console.log(other_players[id]);
-       //     other_players[id].target_x  = player_data.x; // Update target, not actual position, so we can interpolate
-       //     other_players[id].target_y  = player_data.y;
-       //     other_players[id].target_rotation  = player_data.angle;
-       //   }
-       //   console.log("update-players-diff!");
-       // });
+       //-----------------------------------------------------------------------
+       //
+       // Socket callbacks below
+       //
+       //-----------------------------------------------------------------------
+
+
+       // Listen for when a player has moved
+       socket.on('player-move', function(player_data){
+         id = player_data.id;
+         if(id != socket.id){
+           if (other_players[id] != undefined){
+             // Update target, not actual position, so we can interpolate
+             other_players[id].target_x  = player_data.x;
+             other_players[id].target_y  = player_data.y;
+             other_players[id].target_rotation  = player_data.angle;
+           }
+         }
+       });
 
        // Listen for new players connecting
        socket.on('player-join', function(player_data){
@@ -182,8 +189,10 @@
 
        // Listen for players disconnecting
        socket.on('player-leave', function(id){
-         other_players[id].destroy();
-         delete other_players[id];
+         if (other_players[id] != undefined){
+           other_players[id].destroy();
+           delete other_players[id];
+         }
        });
 
        // Response from server for all existing players when I connected.
@@ -197,32 +206,6 @@
            }
          }
        });
-
-       socket.on('update-players',function(players_data){
-         var players_found = {};
-         // Loop over all the player data received
-         for(var id in players_data){
-           players_found[id] = true;
-           // Update positions of other players
-           console.log(other_players);
-           console.log(id);
-           if(id != socket.id){
-             if (other_players[id] != undefined){
-               other_players[id].target_x  = players_data[id].x; // Update target, not actual position, so we can interpolate
-               other_players[id].target_y  = players_data[id].y;
-               other_players[id].target_rotation  = players_data[id].angle;
-             }
-           }
-         }
-         // Check if a player is missing and delete them
-         for(var id in other_players){
-           if(!players_found[id]){
-             other_players[id].destroy();
-             delete other_players[id];
-           }
-         }
-
-       })
 
        // Listen for bullet update events
        socket.on('bullets-update',function(server_bullet_array){
@@ -262,7 +245,7 @@
            player.alive = false;
            player.sprite.destroy();
          } else {
-           // Find the right player 
+           // Find the right player
            other_players[id].destroy();
          }
        })
@@ -272,14 +255,14 @@
      function GameLoop(){
        player.update();
 
-       // Move camera with player 
+       // Move camera with player
        var camera_x = player.sprite.x - WINDOW_WIDTH/2;
        var camera_y = player.sprite.y - WINDOW_HEIGHT/2;
        game.camera.x += (camera_x - game.camera.x) * 0.08;
        game.camera.y += (camera_y - game.camera.y) * 0.08;
-       
-       // Each player is responsible for bringing their alpha back up on their own client 
-       // Make sure other players flash back to alpha = 1 when they're hit 
+
+       // Each player is responsible for bringing their alpha back up on their own client
+       // Make sure other players flash back to alpha = 1 when they're hit
        for(var id in other_players){
          if(other_players[id].alpha < 1){
            other_players[id].alpha += (1 - other_players[id].alpha) * 0.16;
@@ -287,14 +270,14 @@
            other_players[id].alpha = 1;
          }
        }
-       
-       // Interpolate all players to where they should be 
+
+       // Interpolate all players to where they should be
        for(var id in other_players){
          var p = other_players[id];
          if(p.target_x != undefined){
            p.x += (p.target_x - p.x) * 0.16;
            p.y += (p.target_y - p.y) * 0.16;
-           // Intepolate angle while avoiding the positive/negative issue 
+           // Intepolate angle while avoiding the positive/negative issue
            var angle = p.target_rotation;
            var dir = (angle - p.rotation) / (Math.PI * 2);
            dir -= Math.round(dir);
@@ -303,26 +286,23 @@
          }
        }
 
-       /* We're updating the bullets on the server, so we don't need to do this on the client anymore 
-          // Update bullets 
+       /* We're updating the bullets on the server, so we don't need to do this on the client anymore
+          // Update bullets
           for(var i=0;i<bullet_array.length;i++){
           var bullet = bullet_array[i];
-          bullet.sprite.x += bullet.speed_x; 
-          bullet.sprite.y += bullet.speed_y; 
-          // Remove if it goes too far off screen 
+          bullet.sprite.x += bullet.speed_x;
+          bullet.sprite.y += bullet.speed_y;
+          // Remove if it goes too far off screen
           if(bullet.sprite.x < -10 || bullet.sprite.x > WORLD_SIZE.w || bullet.sprite.y < -10 || bullet.sprite.y > WORLD_SIZE.h){
           bullet.sprite.destroy();
           bullet_array.splice(i,1);
           i--;
           }
-          } 
+          }
         */
 
      }
-     
-     
 
     </script>
-
   </body>
 </html>
