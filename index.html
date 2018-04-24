@@ -76,15 +76,14 @@
          // Shoot bullet
 
          if(game.input.activePointer.leftButton.isDown && !this.shot && this.alive){
-           var speed_x = Math.cos(this.sprite.rotation + Math.PI/2) * 20;
-           var speed_y = Math.sin(this.sprite.rotation + Math.PI/2) * 20;
-           /* The server is now simulating the bullets, clients are just rendering bullet locations, so no need to do this anymore
+           var speed_x = Math.cos(this.sprite.rotation + Math.PI/2) * 15;
+           var speed_y = Math.sin(this.sprite.rotation + Math.PI/2) * 15;
+           /* The server is now simulating the bullets, clients are just rendering bullet locations, so no need to do this anymore */
               var bullet = {};
               bullet.speed_x = speed_x;
               bullet.speed_y = speed_y;
               bullet.sprite = game.add.sprite(this.sprite.x + bullet.speed_x,this.sprite.y + bullet.speed_y,'bullet');
               bullet_array.push(bullet);
-            */
            this.shot = true;
            // Tell the server we shot a bullet
            bulletSound.play();
@@ -280,20 +279,19 @@
          }
        }
 
-       /* We're updating the bullets on the server, so we don't need to do this on the client anymore 
+       /* We're updating the bullets on the server, so we don't need to do this on the client anymore */
           // Update bullets 
           for(var i=0;i<bullet_array.length;i++){
-          var bullet = bullet_array[i];
-          bullet.sprite.x += bullet.speed_x; 
-          bullet.sprite.y += bullet.speed_y; 
-          // Remove if it goes too far off screen 
-          if(bullet.sprite.x < -10 || bullet.sprite.x > WORLD_SIZE.w || bullet.sprite.y < -10 || bullet.sprite.y > WORLD_SIZE.h){
-          bullet.sprite.destroy();
-          bullet_array.splice(i,1);
-          i--;
-          }
-          } 
-        */ 
+            var bullet = bullet_array[i];
+            bullet.sprite.x += bullet.speed_x; 
+            bullet.sprite.y += bullet.speed_y; 
+            // Remove if it goes too far off screen 
+            if(bullet.sprite.x < -10 || bullet.sprite.x > WORLD_SIZE.w || bullet.sprite.y < -10 || bullet.sprite.y > WORLD_SIZE.h){
+            bullet.sprite.destroy();
+            bullet_array.splice(i,1);
+            i--;
+           }
+          }  
      }
      
      
