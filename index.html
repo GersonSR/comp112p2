@@ -62,6 +62,7 @@
          this.sprite.rotation += dir * 0.1;
 
          // Move forward
+
          if(game.input.keyboard.isDown(Phaser.Keyboard.W) || game.input.keyboard.isDown(Phaser.Keyboard.UP)){
            this.speed_x += Math.cos(this.sprite.rotation + Math.PI/2) * this.speed;
            this.speed_y += Math.sin(this.sprite.rotation + Math.PI/2) * this.speed;
@@ -100,7 +101,7 @@
          }
 
          // Tell the server we've moved
-         socket.emit('move-player',{x:this.sprite.x,y:this.sprite.y,angle:this.sprite.rotation})
+         socket.emit('move-player',{x:this.sprite.x,y:this.sprite.y,angle:this.sprite.rotation});
        }
      };
 
@@ -156,7 +157,28 @@
 
        socket = io(); // This triggers the 'connection' event on the server
        socket.emit('new-player',{x:player.sprite.x,y:player.sprite.y,angle:player.sprite.rotation,type:player_ship_type, health:10})
+
+       socket.on('update-players-diff', function(player_data){
+         id = player_data.id;
+         if(id != socket.id){
+           console.log(other_players);
+           console.log(other_players[id]);
+           other_players[id].target_x  = player_data.x; // Update target, not actual position, so we can interpolate
+           other_players[id].target_y  = player_data.y;
+           other_players[id].target_rotation  = player_data.angle;
+         }
+         console.log("update-players-diff!");
+       });
+
        // Listen for other players connecting
+       socket.on('player-join', function(player){
+         id = player.id;
+         if (other_players[id] == undefined && id != socket.id){
+           other_players[id] = CreateShip(player.type,player.x,player.y,player.angle);
+           console.log("Created new player at (" + player.x + ", " + player.y + ")");
+         }
+       });
+
        socket.on('update-players',function(players_data){
          var players_found = {};
          // Loop over all the player data received

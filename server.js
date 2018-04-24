@@ -26,7 +26,8 @@ io.on('connection', function(socket){
 		console.log("New player joined with state:",state);
 		players[socket.id] = state;
 		// Broadcast a signal to everyone containing the updated players list
-		io.emit('update-players',players);
+    state.id = socket.id;
+    io.emit('player-join', state);
 	})
 
   // Listen for a disconnection and update our player table
@@ -41,8 +42,21 @@ io.on('connection', function(socket){
     players[socket.id].x = position_data.x;
     players[socket.id].y = position_data.y;
     players[socket.id].angle = position_data.angle;
+
+    player_data = {};
+    player_data.id = socket.id;
+    player_data.x = position_data.x;
+    player_data.y = position_data.y;
+    player_data.angle = position_data.angle;
     io.emit('update-players', players);
-  })
+    
+    // var moved = false;
+    // if (players[socket.id].x - position_data.x > 1 || players[socket.id].y - position_data.y > 1){
+    //   io.emit('update-players-diff', player_data);
+    //}
+  });
+
+
 
   // Listen for shoot-bullet events and add it to our bullet array
   socket.on('shoot-bullet',function(data){
@@ -68,7 +82,7 @@ function ServerGameLoop(){
     for(var id in players){
       if(bullet.owner_id != id){
         // And your own bullet shouldn't kill you
-        var dx = players[id].x - bullet.x; 
+        var dx = players[id].x - bullet.x;
         var dy = players[id].y - bullet.y;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if(dist < 70){
@@ -77,7 +91,6 @@ function ServerGameLoop(){
           	bullet.hits[id] = true;
           	io.emit('player-hit',id); // Tell everyone this player got hit
           } else if (players[id].health <= 1 && bullet.hits[id] != undefined){
-         	console.log(players[id].health);
           	io.emit('player-death',id);
           }
         }
