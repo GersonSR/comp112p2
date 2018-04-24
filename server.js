@@ -25,15 +25,17 @@ io.on('connection', function(socket){
 	socket.on('new-player',function(state){
 		console.log("New player joined with state:",state);
 		players[socket.id] = state;
-		// Broadcast a signal to everyone containing the updated players list
-    state.id = socket.id;
+		state.id = socket.id;
+    // Reply back list of all players
+    socket.emit('all-players', players);
+    // Broadcast a signal to everyone containing the updated players list
     io.emit('player-join', state);
 	})
 
   // Listen for a disconnection and update our player table
   socket.on('disconnect',function(state){
     delete players[socket.id];
-    io.emit('update-players',players);
+    io.emit('player-leave', socket.id);
   })
 
   // Listen for move events and tell all other clients that something has moved
@@ -49,7 +51,6 @@ io.on('connection', function(socket){
     player_data.y = position_data.y;
     player_data.angle = position_data.angle;
     io.emit('update-players', players);
-    
     // var moved = false;
     // if (players[socket.id].x - position_data.x > 1 || players[socket.id].y - position_data.y > 1){
     //   io.emit('update-players-diff', player_data);

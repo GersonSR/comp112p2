@@ -158,24 +158,43 @@
        socket = io(); // This triggers the 'connection' event on the server
        socket.emit('new-player',{x:player.sprite.x,y:player.sprite.y,angle:player.sprite.rotation,type:player_ship_type, health:10})
 
-       socket.on('update-players-diff', function(player_data){
+       // socket.on('update-players-diff', function(player_data){
+       //   id = player_data.id;
+       //   if(id != socket.id){
+       //     console.log(other_players);
+       //     console.log(other_players[id]);
+       //     other_players[id].target_x  = player_data.x; // Update target, not actual position, so we can interpolate
+       //     other_players[id].target_y  = player_data.y;
+       //     other_players[id].target_rotation  = player_data.angle;
+       //   }
+       //   console.log("update-players-diff!");
+       // });
+
+       // Listen for new players connecting
+       socket.on('player-join', function(player_data){
          id = player_data.id;
-         if(id != socket.id){
-           console.log(other_players);
-           console.log(other_players[id]);
-           other_players[id].target_x  = player_data.x; // Update target, not actual position, so we can interpolate
-           other_players[id].target_y  = player_data.y;
-           other_players[id].target_rotation  = player_data.angle;
+         // If the player hasn't been created yet
+         if (other_players[id] == undefined && id != socket.id){
+           other_players[id] = CreateShip(player_data.type,player_data.x,player_data.y,player_data.angle);
+           console.log("Created new player at (" + player_data.x + ", " + player_data.y + ")");
          }
-         console.log("update-players-diff!");
        });
 
-       // Listen for other players connecting
-       socket.on('player-join', function(player){
-         id = player.id;
-         if (other_players[id] == undefined && id != socket.id){
-           other_players[id] = CreateShip(player.type,player.x,player.y,player.angle);
-           console.log("Created new player at (" + player.x + ", " + player.y + ")");
+       // Listen for players disconnecting
+       socket.on('player-leave', function(id){
+         other_players[id].destroy();
+         delete other_players[id];
+       });
+
+       // Response from server for all existing players when I connected.
+       socket.on('all-players', function(players_data){
+         for(var id in players_data){
+           if(other_players[id] == undefined && id != socket.id){ // Make sure you don't create yourself
+             var data = players_data[id];
+             var p = CreateShip(data.type,data.x,data.y,data.angle);
+             other_players[id] = p;
+             console.log("Created new player at (" + data.x + ", " + data.y + ")");
+           }
          }
        });
 
@@ -183,23 +202,17 @@
          var players_found = {};
          // Loop over all the player data received
          for(var id in players_data){
-           // If the player hasn't been created yet
-           if(other_players[id] == undefined && id != socket.id){ // Make sure you don't create yourself
-             var data = players_data[id];
-             var p = CreateShip(data.type,data.x,data.y,data.angle);
-             other_players[id] = p;
-             console.log("Created new player at (" + data.x + ", " + data.y + ")");
-           }
            players_found[id] = true;
-
            // Update positions of other players
+           console.log(other_players);
+           console.log(id);
            if(id != socket.id){
-             other_players[id].target_x  = players_data[id].x; // Update target, not actual position, so we can interpolate
-             other_players[id].target_y  = players_data[id].y;
-             other_players[id].target_rotation  = players_data[id].angle;
+             if (other_players[id] != undefined){
+               other_players[id].target_x  = players_data[id].x; // Update target, not actual position, so we can interpolate
+               other_players[id].target_y  = players_data[id].y;
+               other_players[id].target_rotation  = players_data[id].angle;
+             }
            }
-
-
          }
          // Check if a player is missing and delete them
          for(var id in other_players){
