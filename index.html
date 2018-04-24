@@ -196,7 +196,11 @@
          // If there's not enough bullets on the client, create them
          for(var i=0;i<server_bullet_array.length;i++){
            if(bullet_array[i] == undefined){
-             bullet_array[i] = game.add.sprite(server_bullet_array[i].x,server_bullet_array[i].y,'bullet');
+             var bullet = {}
+             bullet.speed_x = server_bullet_array[i].speed_x;
+             bullet.speed_y = server_bullet_array[i].speed_y;
+             bullet.sprite = game.add.sprite(server_bullet_array[i].x,server_bullet_array[i].y,'bullet');
+             bullet_array[i] = bullet;
            } else {
              //Otherwise, just update it! 
              bullet_array[i].x = server_bullet_array[i].x; 
@@ -204,11 +208,11 @@
            }
          }
          // Otherwise if there's too many, delete the extra 
-         for(var i=server_bullet_array.length;i<bullet_array.length;i++){
-           bullet_array[i].destroy();
-           bullet_array.splice(i,1);
-           i--;
-         }
+         // for(var i=server_bullet_array.length;i<bullet_array.length;i++){
+         //   bullet_array[i].sprite.destroy();
+         //   bullet_array.splice(i,1);
+         //   i--;
+         // }
          
        })
        
@@ -237,10 +241,10 @@
         /* Send latency message.*/
         socket.on('pinged', function(data) {
             var now = new Date();
-            console.log(now.getTime());
-            console.log(data);
+            // console.log(now.getTime());
+            // console.log(data);
             var serverLatency = now.getTime() - data;
-            console.log(serverLatency)
+            // console.log(serverLatency)
             socket.emit('pinger', {timeSent:now.getTime(),serverLatency:serverLatency});
         });  
      }
@@ -282,6 +286,7 @@
        /* We're updating the bullets on the server, so we don't need to do this on the client anymore */
           // Update bullets 
           for(var i=0;i<bullet_array.length;i++){
+            console.log(bullet_array[i]);
             var bullet = bullet_array[i];
             bullet.sprite.x += bullet.speed_x; 
             bullet.sprite.y += bullet.speed_y; 
