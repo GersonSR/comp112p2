@@ -49,18 +49,17 @@ io.on('connection', function(socket){
     io.emit('player-move', position_data);
   });
 
-
-
   // Listen for shoot-bullet events and add it to our bullet array
-  socket.on('shoot-bullet',function(data){
+  socket.on('shoot-bullet',function(bullet){
     if(players[socket.id] == undefined) return;
-    var new_bullet = data;
-    data.owner_id = socket.id; // Attach id of the player to the bullet
-    data.hits = {}; //Array of ship IDs hit by the bullet
-    if(Math.abs(data.speed_x) > 20 || Math.abs(data.speed_y) > 20){
+    bullet.owner_id = socket.id; // Attach id of the player to the bullet
+    bullet.hits = {}; //Array of ship IDs hit by the bullet
+    bullet.speed_x = Math.cos(bullet.angle + Math.PI/2) * 20;
+    bullet.speed_y = Math.sin(bullet.angle + Math.PI/2) * 20;
+    if(Math.abs(bullet.speed_x) > 20 || Math.abs(bullet.speed_y) > 20){
       console.log("Player",socket.id,"is cheating!");
     }
-    bullet_array.push(new_bullet);
+    bullet_array.push(bullet);
   });
 })
 

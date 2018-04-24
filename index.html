@@ -77,8 +77,6 @@
          // Shoot bullet
 
          if(game.input.activePointer.leftButton.isDown && !this.shot && this.alive){
-           var speed_x = Math.cos(this.sprite.rotation + Math.PI/2) * 20;
-           var speed_y = Math.sin(this.sprite.rotation + Math.PI/2) * 20;
            /* The server is now simulating the bullets, clients are just rendering bullet locations, so no need to do this anymore
               var bullet = {};
               bullet.speed_x = speed_x;
@@ -89,7 +87,7 @@
            this.shot = true;
            // Tell the server we shot a bullet
            bulletSound.play();
-           socket.emit('shoot-bullet',{x:this.sprite.x,y:this.sprite.y,angle:this.sprite.rotation,speed_x:speed_x,speed_y:speed_y})
+           socket.emit('shoot-bullet',{x:this.sprite.x,y:this.sprite.y,angle:this.sprite.rotation});
          }
          if(!game.input.activePointer.leftButton.isDown) this.shot = false;
 
@@ -239,6 +237,7 @@
          }
        })
 
+       // Listen for whenever a player has died
        socket.on('player-death',function(id){
          if(id == socket.id){
            //If this is you
