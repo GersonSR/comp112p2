@@ -26,9 +26,9 @@ io.on('connection', function(socket){
 		console.log("New player joined with state:",state);
 		players[socket.id] = state;
 		state.id = socket.id;
-    // Reply back list of all players
+    // Reply back list of all players to new player
     socket.emit('all-players', players);
-    // Broadcast a signal to everyone containing the updated players list
+    // Broadcast to other players the state of new player
     io.emit('player-join', state);
 	})
 
