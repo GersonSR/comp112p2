@@ -45,6 +45,7 @@
      });
      var player = {
        sprite:null,//Will hold the sprite when it's created
+       health:10, // # of shots till death
        speed_x:0,// This is the speed it's currently moving at
        speed_y:0,
        speed:0.5, // This is the parameter for how fast it should move
@@ -153,7 +154,7 @@
        game.camera.y = player.sprite.y - WINDOW_HEIGHT/2;
 
        socket = io(); // This triggers the 'connection' event on the server
-       socket.emit('new-player',{x:player.sprite.x,y:player.sprite.y,angle:player.sprite.rotation,type:player_ship_type, health:10})
+       socket.emit('new-player',{x:player.sprite.x,y:player.sprite.y,angle:player.sprite.rotation,type:player_ship_type, health: player.health})
 
        //-----------------------------------------------------------------------
        //
