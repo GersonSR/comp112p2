@@ -79,11 +79,11 @@
            var speed_x = Math.cos(this.sprite.rotation + Math.PI/2) * 15;
            var speed_y = Math.sin(this.sprite.rotation + Math.PI/2) * 15;
            /* The server is now simulating the bullets, clients are just rendering bullet locations, so no need to do this anymore */
-              var bullet = {};
-              bullet.speed_x = speed_x;
-              bullet.speed_y = speed_y;
-              bullet.sprite = game.add.sprite(this.sprite.x + bullet.speed_x,this.sprite.y + bullet.speed_y,'bullet');
-              bullet_array.push(bullet);
+           var bullet = {};
+           bullet.speed_x = speed_x;
+           bullet.speed_y = speed_y;
+           bullet.sprite = game.add.sprite(this.sprite.x + bullet.speed_x,this.sprite.y + bullet.speed_y,'bullet');
+           bullet_array.push(bullet);
            this.shot = true;
            // Tell the server we shot a bullet
            bulletSound.play();
@@ -195,18 +195,22 @@
        socket.on('bullets-update',function(server_bullet_array){
          // If there's not enough bullets on the client, create them
          for(var i=0;i<server_bullet_array.length;i++){
-           if(bullet_array[i] == undefined){
-             var bullet = {}
-             bullet.speed_x = server_bullet_array[i].speed_x;
-             bullet.speed_y = server_bullet_array[i].speed_y;
-             bullet.sprite = game.add.sprite(server_bullet_array[i].x,server_bullet_array[i].y,'bullet');
-             bullet_array[i] = bullet;
-           } else {
-             //Otherwise, just update it! 
-             bullet_array[i].x = server_bullet_array[i].x; 
-             bullet_array[i].y = server_bullet_array[i].y;
+            console.log(server_bullet_array[i].owner_id);
+            console.log(socket.id);
+           if(server_bullet_array[i].owner_id != socket.id) {
+               if(bullet_array[i] == undefined){
+                 var bullet = {};
+                 bullet.speed_x = server_bullet_array[i].speed_x;
+                 bullet.speed_y = server_bullet_array[i].speed_y;
+                 bullet.sprite = game.add.sprite(server_bullet_array[i].x,server_bullet_array[i].y,'bullet');
+                 bullet_array[i] = bullet;
+               } else {
+                 //Otherwise, just update it! 
+                 bullet_array[i].x = server_bullet_array[i].x; 
+                 bullet_array[i].y = server_bullet_array[i].y;
+               }
+             }            
            }
-         }
          // Otherwise if there's too many, delete the extra 
          // for(var i=server_bullet_array.length;i<bullet_array.length;i++){
          //   bullet_array[i].sprite.destroy();
@@ -286,7 +290,7 @@
        /* We're updating the bullets on the server, so we don't need to do this on the client anymore */
           // Update bullets 
           for(var i=0;i<bullet_array.length;i++){
-            console.log(bullet_array[i]);
+            // console.log(bullet_array[i]);
             var bullet = bullet_array[i];
             bullet.sprite.x += bullet.speed_x; 
             bullet.sprite.y += bullet.speed_y; 
