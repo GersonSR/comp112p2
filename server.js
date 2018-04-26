@@ -62,9 +62,9 @@ io.on('connection', function(socket){
     if(players[socket.id] == undefined) return;
     bullet.owner_id = socket.id; // Attach id of the player to the bullet
     bullet.hits = {}; //Array of ship IDs hit by the bullet
-    bullet.speed_x = Math.cos(bullet.angle + Math.PI/2) * 20;
-    bullet.speed_y = Math.sin(bullet.angle + Math.PI/2) * 20;
-    if(Math.abs(bullet.speed_x) > 20 || Math.abs(bullet.speed_y) > 20){
+    bullet.speed_x = Math.cos(bullet.angle + Math.PI/2) * 15;
+    bullet.speed_y = Math.sin(bullet.angle + Math.PI/2) * 15;
+    if(Math.abs(bullet.speed_x) > 15 || Math.abs(bullet.speed_y) > 15){
       console.log("Player",socket.id,"is cheating!");
     }
     bullet_array.push(bullet);
