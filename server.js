@@ -1,7 +1,9 @@
 var express = require('express'); // Express contains some boilerplate to for routing and such
 var app = express();
 var http = require('http').Server(app);
-var io = require('socket.io')(http); // Here's where we include socket.io as a node module
+
+var io = require('socket.io')(http); // Here's where we include socket.io as a node module 
+var startTime;
 
 // Serve the index page
 app.get("/", function (request, response) {
@@ -25,12 +27,17 @@ io.on('connection', function(socket){
 	socket.on('new-player',function(state){
 		console.log("New player joined with state:",state);
 		players[socket.id] = state;
-		state.id = socket.id;
+		players[socket.id].ping = 0;
+		players[socket.id].serverPing = 0;
+  	state.id = socket.id;
     // Reply back list of all players to new player
     socket.emit('all-players', players);
     // Broadcast to other players the state of new player
     io.emit('player-join', state);
+		// Broadcast a signal to everyone containing the updated players list
+		io.emit('update-players',players);
 	})
+	  
 
   // Listen for a disconnection and update our player table
   socket.on('disconnect',function(state){
@@ -49,6 +56,7 @@ io.on('connection', function(socket){
     io.emit('player-move', position_data);
   });
 
+
   // Listen for shoot-bullet events and add it to our bullet array
   socket.on('shoot-bullet',function(bullet){
     if(players[socket.id] == undefined) return;
@@ -61,6 +69,16 @@ io.on('connection', function(socket){
     }
     bullet_array.push(bullet);
   });
+
+	socket.on("pinger", function(timeData) {
+		if(players[socket.id] == undefined) return;
+		latency = (new Date().getTime()) - timeData.timeSent;
+		latency = ((players[socket.id].ping * 1) + (latency * 2)) / 3
+		players[socket.id].ping = latency;
+		players[socket.id].serverPing = timeData.serverLatency;
+		console.log("SocketId: " + socket.id + " Latency: " + latency + " Server Ping: " + timeData.serverLatency);
+	});
+
 })
 
 // Update the bullets 60 times per frame and send updates
@@ -96,8 +114,15 @@ function ServerGameLoop(){
     }
 
   }
-  // Tell everyone where all the bullets are by sending the whole array
-  io.emit("bullets-update",bullet_array);
+	// Tell everyone where all the bullets are by sending the whole array
+	io.emit("bullets-update",bullet_array);
 }
 
-setInterval(ServerGameLoop, 16);
+
+function getPing(){
+	startTime =  new Date().getTime();
+	io.emit('pinged', startTime);
+}
+
+setInterval(ServerGameLoop, 16); 
+setInterval(getPing, 5000); 
