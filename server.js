@@ -37,7 +37,7 @@ io.on('connection', function(socket){
 		// Broadcast a signal to everyone containing the updated players list
 		io.emit('update-players',players);
 	})
-	  
+
 
   // Listen for a disconnection and update our player table
   socket.on('disconnect',function(state){
@@ -101,6 +101,7 @@ function ServerGameLoop(){
           	bullet.hits[id] = true;
           	io.emit('player-hit',id); // Tell everyone this player got hit
           } else if (players[id].health <= 1 && bullet.hits[id] != undefined){
+            players[id].health = 0;
           	io.emit('player-death',id);
           }
         }
