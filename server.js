@@ -27,15 +27,14 @@ io.on('connection', function(socket){
 	socket.on('new-player',function(state){
 		console.log("New player joined with state:",state);
 		players[socket.id] = state;
+    players[socket.id].health = 10;
 		players[socket.id].ping = 0;
 		players[socket.id].serverPing = 0;
-  	state.id = socket.id;
     // Reply back list of all players to new player
     socket.emit('all-players', players);
     // Broadcast to other players the state of new player
+    state.id = socket.id;
     io.emit('player-join', state);
-		// Broadcast a signal to everyone containing the updated players list
-		io.emit('update-players',players);
 	})
 
 
