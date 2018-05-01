@@ -1,15 +1,18 @@
-Tuts+ Multiplayer Pirate Game Tutorial
-======================================
+COMP112 Project 2 Lag Compensation
+=====================================
+By: Daniel Jin and Gerson Salmeron Rubio
 
-This project contains the complete example of my Tuts+ tutorial on creating a multiplayer game with Socket.io and Phaser. 
+Existing ship multiplayer game taken from
+https://github.com/tutsplus/tutsplus-glitch-multiplayer
+https://code.tutsplus.com/tutorials/create-a-multiplayer-pirate-shooter-game-in-your-browser--cms-23311
+
+All of our code is built on top of the source code of the tutorial.
 
 ![Animated gif of two ships battling](misc/gameplay.gif)
 
-This is a local version of the online [Glitch app](https://glitch.com/edit/#!/tutsplus-pirate-shooter-starterkit). To run it:
-
-* Download or clone the repository 
+* Download or clone the repository
 * Run `npm install` inside
-* Run `npm start` 
+* Run `npm start`
 * Open up http://localhost:5000 in your browser
 * Open up another window and play!
 
